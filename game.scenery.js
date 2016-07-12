@@ -1,6 +1,6 @@
 var gameW = 2000, gameH = 800;
 var canvas, context;
-var cursorX, cursorY;
+var curX, curY;
 var field = [[90,90],[200,100],[100,200],[310,50]];
 var edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
 var selectedCircle;
@@ -54,7 +54,6 @@ function onLoad()
     var x, y;
     var c0, c1;
 
-    /* рисуем линии */
     context.lineWidth = 2;
     for(var i = 0; i < edges.length; i++)
     {
@@ -67,7 +66,6 @@ function onLoad()
       context.stroke();
     }
 
-    /* рисуем круги */
     for(var i = 0; i < field.length; i++)
     {
       x = field[i][0];
