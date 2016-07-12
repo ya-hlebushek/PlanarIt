@@ -1,116 +1,111 @@
-var gameW = 2000, gameH = 800;
-var canvas, context;
-var curX, curY;
-var field = [[90,90],[200,100],[100,200],[310,50]];
-var edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
-var selectedCircle;
+const fieldWidth = 1000, fieldHeight = 800;
+var canvas, ctx, cursorPosX, cursorPosY, selectedPoint;
 
-function onLoad()
-{
-  curX = 0; curY = 0;
-  canvas = document.createElement("canvas");
-  context = canvas.getContext("2d");
-  canvas.width = gameW;
-  canvas.height = gameH;
-  document.body.appendChild(canvas);
-  document.body.addEventListener('mousemove',  mouseMove,  false);
-  document.body.addEventListener('mousedown',  mouseDown,  false);
-  document.body.addEventListener('mouseup',    mouseUp,    false);
-  draw();
+if (gameSession === undefined) var gameSession = {};
+
+function initialize() {
+    gameSession.createLayout();
+    cursorPosX = 0; cursorPosY = 0;
+    canvas = document.createElement("canvas");
+    ctx = canvas.getContext("2d");
+    canvas.width = fieldWidth;
+    canvas.height = fieldHeight;
+    document.body.appendChild(canvas);
+    document.body.addEventListener('mousemove',  mouseMove,  false);
+    document.body.addEventListener('mousedown',  mouseDown,  false);
+    document.body.addEventListener('mouseup',    mouseUp,    false);
+    draw();
 }
 
-  function moveCircle()
-  {
-    field[selectedCircle][0] = curX;
-    field[selectedCircle][1] = curY;
+function movePoint() {
+    gameSession.points[selectedPoint].x = cursorPosX;
+    gameSession.points[selectedPoint].y = cursorPosY;
     draw();
-  }
+}
 
-  function selectCircle()
-  {
-    selectedCircle = undefined;
-    var x, y;
-    var xdis, ydis;
-    var dis;
-    var minDis = 100 * 100;
-    for (var i = 0; i < field.length; i++)
-    {
-      x = field[i][0];
-      y = field[i][1];
-      xdis = x - curX;
-      ydis = y - curY;
-      dis = xdis * xdis + ydis * ydis;
-      if(dis < minDis)
-      {
-        minDis = dis;
-        selectedCircle = i;
-      }
+function selectPoint() {
+    selectedPoint = undefined;
+    let x, y, xDis, yDis, dis, minDis = Math.PI * (radius * radius) / 2;
+    for (let i = 0; i < gameSession.points.length; ++i) {
+        x = gameSession.points[i].x;
+        y = gameSession.points[i].y;
+        xDis = x - cursorPosX;
+        yDis = y - cursorPosY;
+        dis  = xDis * xDis + yDis * yDis;
+        if (dis <= minDis) { minDis = dis; selectedPoint = i };
     }
-  }
+}
 
-  function draw()
-  {
-    context.clearRect(0,0,gameW,gameH);
-    var x, y;
-    var c0, c1;
-
-    context.lineWidth = 2;
-    for(var i = 0; i < edges.length; i++)
-    {
-      t0 = field[edges[i][0]];
-      t1 = field[edges[i][1]];
-      context.beginPath();
-      context.moveTo(t0[0], t0[1]);
-      context.lineTo(t1[0], t1[1]);
-      context.closePath();
-      context.stroke();
+function draw() {
+    ctx.clearRect(0, 0, fieldWidth, fieldHeight);
+    let x, y;
+    ctx.lineWidth = 2;
+    for (let i = 0, t0, t1; i < gameSession.edges.length; ++i) {
+        t0 = gameSession.points[gameSession.edges[i].beginPoint];
+        t1 = gameSession.points[gameSession.edges[i].endPoint];
+        ctx.lineJoin = ctx.lineCap = 'round';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgb(0, 0, 0)';
+        ctx.strokeStyle = '#98FB98';
+        ctx.beginPath();
+        ctx.moveTo(t0.x, t0.y);
+        ctx.lineTo(t1.x, t1.y);
+        ctx.closePath();
+        ctx.stroke();
     }
-
-    for(var i = 0; i < field.length; i++)
-    {
-      x = field[i][0];
-      y = field[i][1];
-      drawCirclePath(17,x,y);
-      context.fill();
+    for (let i = 0; i < gameSession.points.length; ++i) {
+        x = gameSession.points[i].x;
+        y = gameSession.points[i].y;
+        drawPointPath(radius, x, y);
+        ctx.fillStyle = '#333';
+        ctx.fill();
     }
-  }
+}
 
-  function drawCirclePath(R,X,Y)
-  {
-    context.beginPath();
-    context.arc(X,Y,R,0, Math.PI*2, true);
-    context.closePath();
-  }
+function drawPointPath(r, x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2, true);
+    ctx.closePath();
+}
 
-  function updateCursorPos(event)
-  {
-    curX = event.pageX - canvas.offsetLeft;
-    curY = event.pageY - canvas.offsetTop;
-    if (curX > gameW)
-      curX = gameW;
-    else if (curX < 0)
-      curX = 0;
-    if (curY > gameH)
-      curY = gameH;
-    else if (curY < 0)
-      curY = 0;
-  }
+function getMouseCoords(event) {
+    cursorPosX = event.pageX - canvas.offsetLeft;
+    cursorPosY = event.pageY - canvas.offsetTop;
+    if (cursorPosX > fieldWidth - radius) cursorPosX = fieldWidth - radius;
+    else if (cursorPosX < radius) cursorPosX = radius;
+    if (cursorPosY > fieldHeight - radius) cursorPosY = fieldHeight - radius;
+    else if (cursorPosY < radius) cursorPosY = radius;
+}
 
-  function mouseDown(event)
-  {
-    updateCursorPos(event);
-    selectCircle();
-    moveCircle();
-  }
+function mouseDown(event) {
+    getMouseCoords(event);
+    selectPoint();
+    movePoint();
+}
 
-  function mouseUp(event)
-  {
-    selectedCircle = undefined;
+function mouseUp(event) {
+    selectedPoint = undefined;
     draw();
-  }
+}
 
-  function mouseMove(event)
-  {
-    updateCursorPos(event);
-    moveCircle();
-  }
+function mouseMove(event) {
+    getMouseCoords(event);
+    movePoint();
+}
+
+gameSession.createLayout = function() {
+    gameSession.points = [];
+    gameSession.edges  = [];
+    let level = presetLevels[gameSession.currentLevel];
+    for (let i = 0; i < level.points.length; ++i)
+        gameSession.points.push(new gameSession.point(level.points[i].x, level.points[i].y, radius));
+    for (let i = 0; i < level.edges.length; ++i)
+        for (let j = 0; j < level.edges[i].length - 1; ++j)
+            gameSession.edges.push(new gameSession.line(level.edges[i][j], level.edges[i][j + 1]));
+};
+
+gameSession.generateLayout = function(level) {
+
+}
+
+window.onload = initialize;
