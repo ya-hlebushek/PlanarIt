@@ -1,7 +1,8 @@
 const fieldWidth = 1000, fieldHeight = 800;
-var canvas, ctx, cursorPosX, cursorPosY, selectedPoint;
+var canvas, ctx, cursorPosX, cursorPosY, selectedPoint, count = 0;
 
 if (gameSession === undefined) var gameSession = {};
+gameSession.currentLevel = minLevel;
 
 function initialize() {
     gameSession.createLayout();
@@ -47,6 +48,15 @@ function draw() {
         ctx.shadowBlur = 15;
         ctx.shadowColor = 'rgb(0, 0, 0)';
         ctx.strokeStyle = '#98FB98';
+        for (let j = 0; j < gameSession.edges.length; ++j) {
+            let curEdge = gameSession.edges[i], nextEdge = gameSession.edges[j];
+            if (isIntersecting(curEdge, nextEdge)) {
+                ctx.strokeStyle = '#e74c3c';
+                ++count;
+                break;
+            }
+        }
+
         ctx.beginPath();
         ctx.moveTo(t0.x, t0.y);
         ctx.lineTo(t1.x, t1.y);
@@ -85,12 +95,24 @@ function mouseDown(event) {
 
 function mouseUp(event) {
     selectedPoint = undefined;
+    if (count == 0) { alert("You won"); gameSession.changeLevel(1) };
     draw();
 }
 
 function mouseMove(event) {
+    count = 0;
     getMouseCoords(event);
-    movePoint();
+    if (selectedPoint != undefined) movePoint();
+}
+
+function clear(obj) {
+    while (obj.lastChild) obj.removeChild(obj.lastChild);
+}
+
+gameSession.changeLevel = function(inc) {
+    if (gameSession.currentLevel + inc >= minLevel && gameSession.currentLevel + inc <= maxLevel)
+        gameSession.currentLevel += inc;
+    gameSession.createLayout();
 }
 
 gameSession.createLayout = function() {
