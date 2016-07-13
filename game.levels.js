@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const presetLevels = [
     {
         points: [{ x: 400, y: 156 },
@@ -22,19 +21,3 @@ const presetLevels = [
                 [2, 1, 0, 2]]
     }
 ], minLevel = 0, maxLevel = 1;
-=======
-const presetLevels = [
-    {
-        points: [
-            { x: 400, y: 156 },
-            { x: 750, y: 241 },
-            { x: 84,  y: 233 },
-            { x: 500,  y: 700  }],
-        edges: [
-            [1, 2, 3] ,
-            [0, 2, 3] ,
-            [1, 3, 0] ,
-            [0, 1, 2] ]
-    }
-]
->>>>>>> origin/master
